@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>SmartCalc | Calcule o Custo de Produtos – Toalha Mesa</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, 'Segoe UI', 'Inter', 'Roboto', sans-serif;
+        }
+
+        /* ===== BACKGROUND QUADRICULADO BRANCO E VERDE CLARO (TOALHA DE MESA) ===== */
+        body {
+            /* fundo base branco + padrão xadrez (checkered) em verde claro */
+            background-color: #ffffff;
+            background-image: 
+                linear-gradient(45deg, #d4ecce 25%, transparent 25%),
+                linear-gradient(-45deg, #d4ecce 25%, transparent 25%);
+            background-size: 36px 36px;
+            background-position: 0 0, 0 18px;
+            padding: 2rem 1.5rem;
+            color: #0f172a;
+        }
+
+        /* pequeno ajuste para manter contraste e dar sensação de toalha suave */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* header */
+        .header {
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 1.9rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            letter-spacing: -0.3px;
+        }
+
+        .header p {
+            color: #1f2c44;
+            margin-top: 0.5rem;
+            font-size: 1rem;
+            max-width: 650px;
+            margin-left: auto;
+            margin-right: auto;
+            background: rgba(255,255,240,0.65);
+            backdrop-filter: blur(2px);
+            display: inline-block;
+            padding: 0.2rem 1rem;
+            border-radius: 60px;
+        }
+
+        .badge-cmv {
+            background: #e2e8f0;
+            display: inline-block;
+            padding: 0.2rem 0.8rem;
+            border-radius: 30px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin-top: 0.7rem;
+        }
+
+        /* grid layout */
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 1.8rem;
+        }
+
+        /* cards com fundo sólido pra destacar do xadrez (efeito toalha + louça) */
+        .card {
+            background: #ffffff;
+            border-radius: 1.5rem;
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04);
+            overflow: hidden;
+            transition: all 0.2s ease;
+            border: 1px solid #e2ede2;
+        }
+
+        .card-header {
+            padding: 1.2rem 1.5rem;
+            background: #fefef7;
+            border-bottom: 1px solid #e2f0e2;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .card-header h2 {
+            font-size: 1.35rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        /* tables and lists */
+        .item-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        .item-table th,
+        .item-table td {
+            text-align: left;
+            padding: 0.75rem 0.5rem;
+            border-bottom: 1px solid #e6f0e6;
+        }
+
+        .item-table th {
+            font-weight: 600;
+            color: #2d4a2d;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-cost {
+            font-family: monospace;
+            font-weight: 600;
+            background: #ecf7e9;
+            padding: 0.2rem 0.5rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+        }
+
+        .action-btns {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        button {
+            background: #f1f5f9;
+            border: none;
+            padding: 0.4rem 0.9rem;
+            border-radius: 40px;
+            font-weight: 500;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #1e293b;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        button i {
+            font-style: normal;
+            font-weight: 600;
+        }
+
+        button.primary {
+            background: #2c5a2e;
+            color: white;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+
+        button.primary:hover {
+            background: #1f421f;
+            transform: translateY(-1px);
+        }
+
+        button.danger {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+
+        button.danger:hover {
+            background: #fecaca;
+        }
+
+        button.success {
+            background: #e0f2e9;
+            color: #166534;
+        }
+
+        .form-group {
+            margin-bottom: 1.2rem;
+        }
+
+        label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #2c5530;
+            display: block;
+            margin-bottom: 0.3rem;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 0.7rem 1rem;
+            border-radius: 1rem;
+            border: 1px solid #cbd5e1;
+            background: white;
+            font-size: 0.9rem;
+            transition: 0.2s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #3c7840;
+            box-shadow: 0 0 0 3px rgba(60,120,64,0.15);
+        }
+
+        .ingredient-row {
+            display: flex;
+            gap: 0.8rem;
+            align-items: center;
+            margin-bottom: 0.8rem;
+            flex-wrap: wrap;
+        }
+
+        .ingredient-row select {
+            flex: 2;
+            min-width: 120px;
+        }
+
+        .ingredient-row input {
+            flex: 1;
+            min-width: 80px;
+        }
+
+        .ingredient-row button {
+            background: #f1f5f9;
+            padding: 0.4rem 0.8rem;
+        }
+
+        .total-cost-preview {
+            background: #f4faf2;
+            border-radius: 1.2rem;
+            padding: 0.8rem 1rem;
+            margin: 1rem 0;
+            text-align: right;
+            font-weight: 600;
+            border: 1px dashed #bdd8b5;
+        }
+
+        .product-item {
+            background: #fefef9;
+            border: 1px solid #e2f0e2;
+            border-radius: 1rem;
+            padding: 0.8rem 1rem;
+            margin-bottom: 0.8rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+        }
+
+        .product-info h4 {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .product-cost {
+            font-family: monospace;
+            font-weight: 700;
+            background: #eef5ea;
+            padding: 0.2rem 0.8rem;
+            border-radius: 40px;
+            font-size: 0.9rem;
+        }
+
+        .empty-message {
+            color: #6b8c6b;
+            text-align: center;
+            padding: 2rem;
+            font-style: italic;
+        }
+
+        hr {
+            margin: 1rem 0;
+            border: none;
+            border-top: 1px solid #ddecdd;
+        }
+
+        @media (max-width: 850px) {
+            body {
+                padding: 1rem;
+            }
+            .dashboard {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+        }
+
+        .flex-row {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .inline-badge {
+            font-size: 0.7rem;
+            background: #e6f0ff;
+            padding: 0.2rem 0.5rem;
+            border-radius: 20px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>📦 SmartCalc · CMV Fácil</h1>
+        <p>Calcule o custo de produtos e composição de receitas.<br>
+        Ideal para lanchonetes, restaurantes e pequenos negócios.</p>
+        <div class="badge-cmv">⚡ custo médio · composição automática · toalha xadrez verde e branca</div>
+    </div>
+
+    <div class="dashboard">
+        <!-- COLUNA ESQUERDA: ITENS DE ESTOQUE -->
+        <div class="card">
+            <div class="card-header">
+                <h2>📋 Itens do Estoque</h2>
+                <span class="inline-badge">matéria-prima</span>
+            </div>
+            <div class="card-body">
+                <div id="itemsListContainer">
+                    <!-- tabela de itens será injetada aqui -->
+                </div>
+                <hr>
+                <div class="form-group">
+                    <label>➕ Adicionar / Editar Item</label>
+                    <div class="flex-row" style="gap: 0.8rem; flex-wrap: wrap;">
+                        <input type="text" id="itemName" placeholder="Ex: Queijo mussarela" style="flex: 2;">
+                        <input type="number" id="itemCost" placeholder="Custo unitário (R$)" step="0.01" style="flex: 1;">
+                        <button id="saveItemBtn" class="primary">💾 Salvar Item</button>
+                        <button id="cancelEditItemBtn" style="display: none;">Cancelar</button>
+                    </div>
+                </div>
+                <div class="info-note" style="font-size: 0.7rem; color: #4b6b3e; margin-top: 0.5rem;">
+                    * Custo por unidade (kg, litro, peça). Produtos usam esses valores automaticamente.
+                </div>
+            </div>
+        </div>
+
+        <!-- COLUNA DIREITA: PRODUTOS E COMPOSIÇÃO -->
+        <div class="card">
+            <div class="card-header">
+                <h2>🍔 Produtos & Composição</h2>
+                <span class="inline-badge">custo real + CMV</span>
+            </div>
+            <div class="card-body">
+                <div id="productsListArea">
+                    <!-- lista de produtos -->
+                </div>
+
+                <hr>
+                <h3 style="font-size: 1.05rem; margin-bottom: 1rem;">🧑‍🍳 Criar / Editar Produto</h3>
+                <div class="form-group">
+                    <label>Nome do produto</label>
+                    <input type="text" id="productName" placeholder="Ex: X-Bacon, Coxinha, Suco Natural">
+                </div>
+
+                <div id="ingredientsContainer">
+                    <!-- linhas de ingredientes dinâmicas -->
+                </div>
+                <button id="addIngredientBtn" class="success" style="margin-bottom: 1rem;">+ Adicionar ingrediente</button>
+
+                <div class="total-cost-preview" id="liveProductCost">
+                    💰 Custo total do produto: <strong>R$ 0,00</strong>
+                </div>
+
+                <div class="flex-row" style="justify-content: flex-end; gap: 0.8rem;">
+                    <button id="cancelProductFormBtn">Cancelar edição</button>
+                    <button id="saveProductBtn" class="primary">✅ Salvar produto</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ---------- ESTRUTURA DE DADOS ----------
+    let items = [];        // { id, name, unitCost }
+    let products = [];     // { id, name, ingredients: [{ itemId, quantity }] }
+
+    // Estado do formulário de produtos
+    let editingProductId = null;          // null = novo produto
+    let productFormIngredients = [];       // [{ itemId, quantity }] (temporário)
+
+    // Estado do formulário de itens
+    let editingItemId = null;
+
+    // IDs automáticos
+    let nextItemId = 1;
+    let nextProductId = 1;
+
+    // Carregar dados iniciais / localStorage
+    function loadData() {
+        const storedItems = localStorage.getItem("smartstock_items");
+        const storedProducts = localStorage.getItem("smartstock_products");
+
+        if (storedItems) {
+            items = JSON.parse(storedItems);
+            nextItemId = Math.max(0, ...items.map(i => i.id), 0) + 1;
+        } else {
+            // dados demo realistas para lanchonete
+            items = [
+                { id: 1, name: "Pão de hambúrguer", unitCost: 0.85 },
+                { id: 2, name: "Hambúrguer 150g", unitCost: 3.20 },
+                { id: 3, name: "Queijo mussarela (fatia)", unitCost: 0.65 },
+                { id: 4, name: "Alface (porção)", unitCost: 0.40 },
+                { id: 5, name: "Tomate (fatia)", unitCost: 0.25 },
+                { id: 6, name: "Batata frita (200g)", unitCost: 2.10 },
+                { id: 7, name: "Refrigerante 350ml", unitCost: 2.50 }
+            ];
+            nextItemId = 8;
+        }
+
+        if (storedProducts) {
+            products = JSON.parse(storedProducts);
+            nextProductId = Math.max(0, ...products.map(p => p.id), 0) + 1;
+        } else {
+            // produto de exemplo: X-Burguer
+            products = [
+                {
+                    id: 1,
+                    name: "X-Burger Clássico",
+                    ingredients: [
+                        { itemId: 1, quantity: 1 },
+                        { itemId: 2, quantity: 1 },
+                        { itemId: 3, quantity: 1 },
+                        { itemId: 4, quantity: 0.5 },
+                        { itemId: 5, quantity: 1 }
+                    ]
+                },
+                {
+                    id: 2,
+                    name: "Porção de Batata Média",
+                    ingredients: [
+                        { itemId: 6, quantity: 1 }
+                    ]
+                }
+            ];
+            nextProductId = 3;
+        }
+    }
+
+    function saveToLocalStorage() {
+        localStorage.setItem("smartstock_items", JSON.stringify(items));
+        localStorage.setItem("smartstock_products", JSON.stringify(products));
+    }
+
+    // ----- UTILITÁRIOS -----
+    function getItemById(id) {
+        return items.find(i => i.id === id);
+    }
+
+    // calcular custo de um produto (com base nos itens atuais)
+    function calculateProductCost(product) {
+        if (!product.ingredients || product.ingredients.length === 0) return 0;
+        let total = 0;
+        for (let ing of product.ingredients) {
+            const item = getItemById(ing.itemId);
+            if (item) {
+                total += item.unitCost * ing.quantity;
+            }
+        }
+        return total;
+    }
+
+    // recalcular custo a partir do array temporário (formulário)
+    function calculateTemporaryProductCost() {
+        let total = 0;
+        for (let ing of productFormIngredients) {
+            const item = getItemById(ing.itemId);
+            if (item && ing.quantity > 0) {
+                total += item.unitCost * ing.quantity;
+            }
+        }
+        return total;
+    }
+
+    // Atualiza preview de custo no formulário
+    function updateLiveCostPreview() {
+        const cost = calculateTemporaryProductCost();
+        document.getElementById("liveProductCost").innerHTML = `💰 Custo total do produto: <strong>R$ ${cost.toFixed(2)}</strong>`;
+    }
+
+    // ----- RENDERIZA LISTA DE ITENS -----
+    function renderItems() {
+        const container = document.getElementById("itemsListContainer");
+        if (!items.length) {
+            container.innerHTML = `<div class="empty-message">📭 Nenhum item cadastrado. Adicione acima.</div>`;
+            return;
+        }
+        let html = `<table class="item-table">
+                        <thead>
+                            <tr><th>Item</th><th>Custo unitário (R$)</th><th style="width: 110px;">Ações</th></tr>
+                        </thead><tbody>`;
+        items.forEach(item => {
+            html += `<tr>
+                        <td><strong>${escapeHtml(item.name)}</strong></td>
+                        <td><span class="badge-cost">R$ ${item.unitCost.toFixed(2)}</span></td>
+                        <td class="action-btns">
+                            <button class="edit-item-btn" data-id="${item.id}">✏️ Editar</button>
+                            <button class="delete-item-btn" data-id="${item.id}">🗑️ Excluir</button>
+                         </td>
+                      </tr>`;
+        });
+        html += `</tbody></table>`;
+        container.innerHTML = html;
+
+        // eventos dos botões
+        document.querySelectorAll(".edit-item-btn").forEach(btn => {
+            btn.addEventListener("click", (e) => {
+                const id = parseInt(btn.dataset.id);
+                startEditItem(id);
+            });
+        });
+        document.querySelectorAll(".delete-item-btn").forEach(btn => {
+            btn.addEventListener("click", (e) => {
+                const id = parseInt(btn.dataset.id);
+                deleteItemById(id);
+            });
+        });
+    }
+
+    function startEditItem(id) {
+        const item = items.find(i => i.id === id);
+        if (!item) return;
+        editingItemId = id;
+        document.getElementById("itemName").value = item.name;
+        document.getElementById("itemCost").value = item.unitCost;
+        const saveBtn = document.getElementById("saveItemBtn");
+        saveBtn.textContent = "✏️ Atualizar Item";
+        const cancelBtn = document.getElementById("cancelEditItemBtn");
+        cancelBtn.style.display = "inline-block";
+    }
+
+    function cancelEditItem() {
+        editingItemId = null;
+        document.getElementById("itemName").value = "";
+        document.getElementById("itemCost").value = "";
+        const saveBtn = document.getElementById("saveItemBtn");
+        saveBtn.textContent = "💾 Salvar Item";
+        document.getElementById("cancelEditItemBtn").style.display = "none";
+    }
+
+    function saveItem() {
+        const name = document.getElementById("itemName").value.trim();
+        const cost = parseFloat(document.getElementById("itemCost").value);
+        if (!name) {
+            alert("Informe o nome do item.");
+            return;
+        }
+        if (isNaN(cost) || cost < 0) {
+            alert("Custo inválido. Use um número positivo (ex: 1.99).");
+            return;
+        }
+
+        if (editingItemId !== null) {
+            // edição
+            const index = items.findIndex(i => i.id === editingItemId);
+            if (index !== -1) {
+                items[index].name = name;
+                items[index].unitCost = cost;
+            }
+            editingItemId = null;
+        } else {
+            // novo item
+            const newId = nextItemId++;
+            items.push({ id: newId, name: name, unitCost: cost });
+        }
+        saveToLocalStorage();
+        cancelEditItem();
+        renderItems();
+        // atualiza tudo que depende dos itens: formulário de produtos, lista de produtos
+        refreshAllProductDependencies();
+    }
+
+    function deleteItemById(id) {
+        const usedInProducts = products.some(p => p.ingredients.some(ing => ing.itemId === id));
+        let confirmMsg = `Excluir "${getItemById(id)?.name}"?`;
+        if (usedInProducts) {
+            confirmMsg += "\n\n⚠️ Atenção: Este item é usado em um ou mais produtos. As receitas serão atualizadas automaticamente (ingrediente removido).";
+        }
+        if (!confirm(confirmMsg)) return;
+
+        // remover item
+        items = items.filter(i => i.id !== id);
+        // remover referência nos produtos
+        products.forEach(product => {
+            product.ingredients = product.ingredients.filter(ing => ing.itemId !== id);
+        });
+        // limpar produtos que ficaram sem ingredientes? apenas mantém (custo 0)
+        saveToLocalStorage();
+        // se o formulário de produto tiver esse ingrediente, remover também
+        productFormIngredients = productFormIngredients.filter(ing => ing.itemId !== id);
+        renderItems();
+        refreshAllProductDependencies();
+        if (editingProductId !== null) {
+            renderIngredientRows(); // re-render formulário ativo
+        } else {
+            renderIngredientRows(); // atualiza dropdowns
+        }
+        updateLiveCostPreview();
+    }
+
+    // ----- RENDERIZA LISTA DE PRODUTOS -----
+    function renderProductsList() {
+        const container = document.getElementById("productsListArea");
+        if (!products.length) {
+            container.innerHTML = `<div class="empty-message">🍽️ Nenhum produto criado. Use o formulário ao lado.</div>`;
+            return;
+        }
+        let html = `<div style="margin-bottom: 0.5rem; font-weight:500;">📌 Seus produtos (custo direto):</div>`;
+        products.forEach(prod => {
+            const cost = calculateProductCost(prod);
+            html += `
+                <div class="product-item">
+                    <div class="product-info">
+                        <h4>${escapeHtml(prod.name)}</h4>
+                        <div style="font-size:0.75rem; color:#5b6e8c;">${prod.ingredients.length} ingrediente(s)</div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <div class="product-cost">R$ ${cost.toFixed(2)}</div>
+                        <div class="action-btns">
+                            <button class="edit-product-btn" data-id="${prod.id}">✏️ Editar</button>
+                            <button class="delete-product-btn" data-id="${prod.id}">🗑️</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+
+        document.querySelectorAll(".edit-product-btn").forEach(btn => {
+            btn.addEventListener("click", (e) => {
+                const id = parseInt(btn.dataset.id);
+                loadProductToForm(id);
+            });
+        });
+        document.querySelectorAll(".delete-product-btn").forEach(btn => {
+            btn.addEventListener("click", (e) => {
+                const id = parseInt(btn.dataset.id);
+                if (confirm("Excluir produto permanentemente?")) {
+                    products = products.filter(p => p.id !== id);
+                    saveToLocalStorage();
+                    renderProductsList();
+                    if (editingProductId === id) resetProductForm();
+                    refreshAllProductDependencies();
+                }
+            });
+        });
+    }
+
+    function loadProductToForm(productId) {
+        const product = products.find(p => p.id === productId);
+        if (!product) return;
+        editingProductId = product.id;
+        document.getElementById("productName").value = product.name;
+        // copiar ingredientes para o state do formulário
+        productFormIngredients = JSON.parse(JSON.stringify(product.ingredients));
+        renderIngredientRows();
+        updateLiveCostPreview();
+        document.getElementById("saveProductBtn").textContent = "✏️ Atualizar Produto";
+        document.getElementById("cancelProductFormBtn").style.display = "inline-flex";
+    }
+
+    function resetProductForm() {
+        editingProductId = null;
+        document.getElementById("productName").value = "";
+        productFormIngredients = [];
+        renderIngredientRows();
+        updateLiveCostPreview();
+        document.getElementById("saveProductBtn").textContent = "✅ Salvar produto";
+        document.getElementById("cancelProductFormBtn").style.display = "inline-flex";
+    }
+
+    function cancelProductEdit() {
+        resetProductForm();
+    }
+
+    function saveProduct() {
+        const productName = document.getElementById("productName").value.trim();
+        if (!productName) {
+            alert("Digite o nome do produto.");
+            return;
+        }
+        const validIngredients = productFormIngredients.filter(ing => ing.itemId && ing.quantity > 0);
+        if (validIngredients.length === 0) {
+            alert("Adicione pelo menos um ingrediente com quantidade positiva.");
+            return;
+        }
+
+        if (editingProductId !== null) {
+            // update
+            const index = products.findIndex(p => p.id === editingProductId);
+            if (index !== -1) {
+                products[index].name = productName;
+                products[index].ingredients = validIngredients;
+            }
+        } else {
+            // novo produto
+            const newId = nextProductId++;
+            products.push({
+                id: newId,
+                name: productName,
+                ingredients: validIngredients
+            });
+        }
+        saveToLocalStorage();
+        resetProductForm();
+        renderProductsList();
+        refreshAllProductDependencies();
+    }
+
+    // ---------- GERENCIAR INGREDIENTES DINÂMICOS (FORM) ----------
+    function renderIngredientRows() {
+        const container = document.getElementById("ingredientsContainer");
+        if (!container) return;
+        if (productFormIngredients.length === 0) {
+            container.innerHTML = `<div class="empty-message" style="background:#f9fbfe; padding:1rem;">➕ Clique em "Adicionar ingrediente" para compor a receita.</div>`;
+            return;
+        }
+        let html = `<div style="margin-bottom: 0.5rem; font-weight:500;">🧾 Ingredientes da receita:</div>`;
+        productFormIngredients.forEach((ing, idx) => {
+            const selectedItemId = ing.itemId;
+            const quantityValue = ing.quantity;
+            // montar options do select
+            let options = `<option value="">-- Selecione --</option>`;
+            items.forEach(item => {
+                const selected = selectedItemId === item.id ? 'selected' : '';
+                options += `<option value="${item.id}" ${selected}>${escapeHtml(item.name)} (R$ ${item.unitCost.toFixed(2)})</option>`;
+            });
+            html += `
+                <div class="ingredient-row" data-index="${idx}">
+                    <select class="ingredient-item-select" data-idx="${idx}">${options}</select>
+                    <input type="number" step="0.01" class="ingredient-quantity" data-idx="${idx}" value="${quantityValue}" placeholder="Quantidade" style="min-width:90px;">
+                    <button class="remove-ingredient-btn" data-idx="${idx}">🗑️ Remover</button>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+
+        // eventos para selects e quantities
+        document.querySelectorAll(".ingredient-item-select").forEach(select => {
+            select.addEventListener("change", (e) => {
+                const idx = parseInt(select.dataset.idx);
+                const newItemId = parseInt(select.value);
+                if (!isNaN(newItemId)) {
+                    productFormIngredients[idx].itemId = newItemId;
+                } else {
+                    productFormIngredients[idx].itemId = null;
+                }
+                updateLiveCostPreview();
+            });
+        });
+        document.querySelectorAll(".ingredient-quantity").forEach(input => {
+            input.addEventListener("input", (e) => {
+                const idx = parseInt(input.dataset.idx);
+                let qty = parseFloat(input.value);
+                if (isNaN(qty) || qty < 0) qty = 0;
+                productFormIngredients[idx].quantity = qty;
+                updateLiveCostPreview();
+            });
+        });
+        document.querySelectorAll(".remove-ingredient-btn").forEach(btn => {
+            btn.addEventListener("click", (e) => {
+                const idx = parseInt(btn.dataset.idx);
+                productFormIngredients.splice(idx, 1);
+                renderIngredientRows();
+                updateLiveCostPreview();
+            });
+        });
+    }
+
+    function addIngredientRow() {
+        if (items.length === 0) {
+            alert("Cadastre pelo menos um item no estoque antes de adicionar ingredientes.");
+            return;
+        }
+        const firstItemId = items[0]?.id || null;
+        productFormIngredients.push({ itemId: firstItemId, quantity: 1 });
+        renderIngredientRows();
+        updateLiveCostPreview();
+    }
+
+    // Atualiza tudo que depende de itens (quando item é editado/excluído/adicionado)
+    function refreshAllProductDependencies() {
+        renderProductsList();      // custos recalculados
+        // Atualiza dropdowns no formulário de produto caso esteja aberto
+        if (document.getElementById("ingredientsContainer")) {
+            renderIngredientRows();   // refaz selects com itens atuais
+        }
+        updateLiveCostPreview();
+    }
+
+    // Utilitário de escape
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    // Inicialização e eventos
+    document.addEventListener("DOMContentLoaded", () => {
+        loadData();
+        renderItems();
+        renderProductsList();
+        resetProductForm();  // estado limpo
+        // eventos principais
+        document.getElementById("saveItemBtn").addEventListener("click", saveItem);
+        document.getElementById("cancelEditItemBtn").addEventListener("click", cancelEditItem);
+        document.getElementById("addIngredientBtn").addEventListener("click", addIngredientRow);
+        document.getElementById("saveProductBtn").addEventListener("click", saveProduct);
+        document.getElementById("cancelProductFormBtn").addEventListener("click", cancelProductEdit);
+
+        // garantir preview inicial
+        updateLiveCostPreview();
+        renderIngredientRows();  // vazio mas com placeholder
+        // se houver itens mas nenhum ingrediente, ok
+    });
+</script>
+</body>
+</html>
